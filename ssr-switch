@@ -24,13 +24,13 @@ ss_local_port=1081
 [ -n "$2" ] && switch_time=$2
 
 uci_get_by_name() {
-	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
-	echo ${ret:=$3}
+    local ret=$(uci get $NAME.$1.$2 2>/dev/null)
+    echo ${ret:=$3}
 }
 
 uci_get_by_type() {
-	local ret=$(uci get $NAME.@$1[0].$2 2>/dev/null)
-	echo ${ret:=$3}
+    local ret=$(uci get $NAME.@$1[0].$2 2>/dev/null)
+    echo ${ret:=$3}
 }
 
 DEFAULT_SERVER=$(uci_get_by_type global global_server)
@@ -38,118 +38,118 @@ CURRENT_SERVER=$DEFAULT_SERVER
 
 #解析ip
 get_host_ip() {
-	local host=$1
-	local isip=""
-	local ip=$host
-	isip=$(echo $host | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
-	if [ -z "$isip" ]; then
-		if [ "$host" != "${host#*:[0-9a-fA-F]}" ]; then
-			ip=$host
-		else
-			local ip=$(resolveip -4 -t 3 $host | awk 'NR==1{print}')
-			[ -z "$ip" ] && ip=$(wget -q -O- http://119.29.29.29/d?dn=$1 | awk -F ';' '{print $1}')
-		fi
-	fi
-	echo ${ip:="ERROR"}
+    local host=$1
+    local isip=""
+    local ip=$host
+    isip=$(echo $host | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
+    if [ -z "$isip" ]; then
+        if [ "$host" != "${host#*:[0-9a-fA-F]}" ]; then
+            ip=$host
+        else
+            local ip=$(resolveip -4 -t 3 $host | awk 'NR==1{print}')
+            [ -z "$ip" ] && ip=$(wget -q -O- http://119.29.29.29/d?dn=$1 | awk -F ';' '{print $1}')
+        fi
+    fi
+    echo ${ip:="ERROR"}
 }
 
 #判断代理是否正常
 check_proxy() {
-	local result=0
-	local try_count=$(uci_get_by_type global switch_try_count 3)
-	#for i in $(seq 1 $try_count); do
-		#/usr/bin/ssr-check www.google.com 80 $switch_time 1
-	check_google
-	if [ "$?" == "0" ]; then
-		#echo "$(date "+%Y-%m-%d %H:%M:%S") Check Google Proxy Success" >> /tmp/ssrplus.log
-		result=0
-	else
-		echo "$(date "+%Y-%m-%d %H:%M:%S") Check Google Proxy Fail" >> /tmp/ssrplus.log
-		#/usr/bin/ssr-check www.baidu.com 80 $switch_time 1
-		check_baidu 
-		if [ "$?" == "0" ]; then
-			result=1
-		else
-			result=2
-			echo "$(date "+%Y-%m-%d %H:%M:%S") Check baidu Fail" >> /tmp/ssrplus.log
-		fi
-	fi
-		#sleep 1
-	#done
-	return $result
+    local result=0
+    local try_count=$(uci_get_by_type global switch_try_count 3)
+    #for i in $(seq 1 $try_count); do
+    #/usr/bin/ssr-check www.google.com 80 $switch_time 1
+    check_google
+    if [ "$?" == "0" ]; then
+        #echo "$(date "+%Y-%m-%d %H:%M:%S") Check Google Proxy Success" >> /tmp/ssrplus.log
+        result=0
+    else
+        echo "$(date "+%Y-%m-%d %H:%M:%S") Check Google Proxy Fail" >> /tmp/ssrplus.log
+        #/usr/bin/ssr-check www.baidu.com 80 $switch_time 1
+        check_baidu
+        if [ "$?" == "0" ]; then
+            result=1
+        else
+            result=2
+            echo "$(date "+%Y-%m-%d %H:%M:%S") Check baidu Fail" >> /tmp/ssrplus.log
+        fi
+    fi
+    #sleep 1
+    #done
+    return $result
 }
 
 test_proxy() {
-	local servername=$(get_host_ip $(uci_get_by_name $1 server))
-	local serverport=$(uci_get_by_name $1 server_port)
-	ipset add ss_spec_wan_ac $servername 2>/dev/null
-	ret1=$?
-	ret=$(tcpping -c 3 -p $serverport $servername | grep 'loss' | awk -F ',' '{ print $3 }' | awk -F "%" '{ print $1 }' | awk -F "." '{ print $1 }')
-	#echo "$(date "+%Y-%m-%d %H:%M:%S") test_proxy> name: $servername, ret1: $ret1, ret: $ret" >> /tmp/ssrplus.log
-	if [ -z "$ret" ] || [ "$ret" -gt "50" ]; then
-		[ "$ret1" == "0" ] && ipset del ss_spec_wan_ac $servername 2>/dev/null
-		return 1
-	fi
-	#/usr/bin/ssr-check $servername $serverport $switch_time
-	my_test_proxy $1
-	local ret2=$?
-	[ "$ret1" == "0" ] && ipset del ss_spec_wan_ac $servername 2>/dev/null
-	if [ "$ret2" == "0" ]; then
-		return 0
-	else
-		return 1
-	fi
+    local servername=$(get_host_ip $(uci_get_by_name $1 server))
+    local serverport=$(uci_get_by_name $1 server_port)
+    ipset add ss_spec_wan_ac $servername 2>/dev/null
+    ret1=$?
+    ret=$(tcpping -c 3 -p $serverport $servername | grep 'loss' | awk -F ',' '{ print $3 }' | awk -F "%" '{ print $1 }' | awk -F "." '{ print $1 }')
+    #echo "$(date "+%Y-%m-%d %H:%M:%S") test_proxy> name: $servername, ret1: $ret1, ret: $ret" >> /tmp/ssrplus.log
+    if [ -z "$ret" ] || [ "$ret" -gt "50" ]; then
+        [ "$ret1" == "0" ] && ipset del ss_spec_wan_ac $servername 2>/dev/null
+        return 1
+    fi
+    #/usr/bin/ssr-check $servername $serverport $switch_time
+    my_test_proxy $1
+    local ret2=$?
+    [ "$ret1" == "0" ] && ipset del ss_spec_wan_ac $servername 2>/dev/null
+    if [ "$ret2" == "0" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 search_proxy() {
-	let server_count=server_count+1
-	[ "$normal_flag" == "1" -a "$server_count" -le "$server_locate" ] && return 0
-	[ "$(uci_get_by_name $1 switch_enable 0)" != "1" ] && return 1
-	[ $ENABLE_SERVER != nil ] && return 0
-	[ "$1" == "$CURRENT_SERVER" ] && return 0
-	local servername=$(get_host_ip $(uci_get_by_name $1 server))
-	local serverport=$(uci_get_by_name $1 server_port)
-	ipset add ss_spec_wan_ac $servername 2>/dev/null
-	ret=$?
-	#/usr/bin/ssr-check $servername $serverport $switch_time
-	my_test_proxy $1
-	local ret2=$?
-	[ "$ret" == "0" ] && ipset del ss_spec_wan_ac $servername 2>/dev/null
-	if [ "$ret2" == "0" ]; then
-		server_locate=$server_count
-		ENABLE_SERVER=$1
-		return 0
-	else
-		return 1
-	fi
+    let server_count=server_count+1
+    [ "$normal_flag" == "1" -a "$server_count" -le "$server_locate" ] && return 0
+    [ "$(uci_get_by_name $1 switch_enable 0)" != "1" ] && return 1
+    [ $ENABLE_SERVER != nil ] && return 0
+    [ "$1" == "$CURRENT_SERVER" ] && return 0
+    local servername=$(get_host_ip $(uci_get_by_name $1 server))
+    local serverport=$(uci_get_by_name $1 server_port)
+    ipset add ss_spec_wan_ac $servername 2>/dev/null
+    ret=$?
+    #/usr/bin/ssr-check $servername $serverport $switch_time
+    my_test_proxy $1
+    local ret2=$?
+    [ "$ret" == "0" ] && ipset del ss_spec_wan_ac $servername 2>/dev/null
+    if [ "$ret2" == "0" ]; then
+        server_locate=$server_count
+        ENABLE_SERVER=$1
+        return 0
+    else
+        return 1
+    fi
 }
 
 #选择可用的代理
 select_proxy() {
-	config_load $NAME
-	ENABLE_SERVER=nil
-	mkdir -p /var/run /var/etc
-	server_count=0
-	config_foreach search_proxy servers
+    config_load $NAME
+    ENABLE_SERVER=nil
+    mkdir -p /var/run /var/etc
+    server_count=0
+    config_foreach search_proxy servers
 }
 
 #切换代理
 switch_proxy() {
-	/etc/init.d/shadowsocksr restart $1
-	return 0
+    /etc/init.d/shadowsocksr restart $1
+    return 0
 }
 
 
 
 
 my_test_proxy() {
-	local type="$(uci_get_by_name $1 type)"
-	if test $type != "ss" ; then
-		return 1;
-	fi
-
-	local my_config_file=/root/ss.json
-
+    local type="$(uci_get_by_name $1 type)"
+    if test $type != "ss" ; then
+        return 1;
+    fi
+    
+    local my_config_file=/tmp/ss-local.json
+    
 	cat <<-EOF > $my_config_file
 	{
 		"server": "$(get_host_ip $(uci_get_by_name $1 server))",
@@ -163,106 +163,104 @@ my_test_proxy() {
 		"fast_open": false
 	}
 	EOF
-	killall ss-local
-	/usr/bin/ss-local -c $my_config_file > /dev/null 2>&1 &
-
-	echo "check  $(uci_get_by_name $1 alias)" >> /tmp/ssrplus.log
-
-	check_google "socks5"
-
-	return $?
+    killall ss-local
+    /usr/bin/ss-local -c $my_config_file > /dev/null 2>&1 &
+    
+    echo "check  $(uci_get_by_name $1 alias)" >> /tmp/ssrplus.log
+    
+    check_google "socks5"
+    
+    return $?
 }
 
-google_ip=0
+google_ip=""
 get_google_ip() {
-	google_ip=$(curl -s -H 'accept: application/dns-json' 'https://dns.rubyfish.cn/dns-query?name=www.google.com&type=A' | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -n '1p')
+    local ip=$(curl -s -H 'accept: application/dns-json' 'https://dns.rubyfish.cn/dns-query?name=www.google.com&type=A' | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -n '1p')
+    echo $ip
 }
 
 check_google() {
-        rm -rf /tmp/response.txt
-        [ -z "$ip" ] && get_google_ip
-
-    	local url="http://$google_ip"
-    	echo "$url"
-    	
-        if [ "$1" == "socks5" ]; then
-        	curl -I --connect-timeout 2 --retry-delay 1 --retry $switch_time -o /tmp/response.txt  --socks5 127.0.0.1:$ss_local_port $url >/dev/null 
-        else
-			curl -I --connect-timeout 2 --retry-delay 1 --retry $switch_time -o /tmp/response.txt  $url >/dev/null 
-        fi	
-
-        if [ -s /tmp/response.txt ]; then
-                return 0
-        else
-                return 1
-        fi
-       
-
-        
+    rm -rf /tmp/response.txt
+    [ -z "$google_ip" ] && google_ip=$(get_google_ip)
+    [ -z "$google_ip" ] && return 0
+    
+    local url="http://$google_ip"
+    local resp=nil
+    
+    if [ "$1" == "socks5" ]; then
+        resp=$(curl -I --connect-timeout 2 --retry-delay 1 --retry $switch_time --socks5 127.0.0.1:$ss_local_port $url | sed -n '1p')
+    else
+        resp=$(curl -I --connect-timeout 2 --retry-delay 1 --retry $switch_time $url | sed -n '1p')
+    fi
+    
+    if [ "$resp" ]; then
+        return 0
+    else
+        return 1
+    fi       
 }
 
-check_baidu() {
-        rm -rf /tmp/response_baidu.txt
-        curl -I --connect-timeout 2 --retry-delay 1 --retry 2 -o /tmp/response_baidu.txt  https://www.baidu.com >/dev/null 
-        if [ -s /tmp/response_baidu.txt ]; then
-                return 0
-        else
-                return 1
-        fi
 
+check_baidu() {
+    local resp=$(curl -I --connect-timeout 2 --retry-delay 1 --retry $switch_time https://www.baidu.com | sed -n '1p')
+    if [ "$resp" ]; then
+        return 0
+    else
+        return 1
+    fi  
 }
 
 
 
 
 start() {
-	#不支持kcptun启用时的切换
-	[ $(uci_get_by_name $DEFAULT_SERVER kcp_enable) = "1" ] && return 1
-	while [ "1" == "1" ]; do #死循环
-		sleep $cycle_time
-		#sleep 10
-		LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
-		#判断当前代理是否为缺省服务器
-		if [ "$CURRENT_SERVER" != "$DEFAULT_SERVER" ]; then
-			#echo "not default proxy"
-			echo "$(date "+%Y-%m-%d %H:%M:%S") Current server is not default Main server, try to switch back." >>/tmp/ssrplus.log
-			#检查缺省服务器是否正常
-			if test_proxy $DEFAULT_SERVER; then
-				#echo "switch to default proxy"
-				echo "$(date "+%Y-%m-%d %H:%M:%S") Main server is avilable." >>/tmp/ssrplus.log
-				#缺省服务器正常，切换回来
-				CURRENT_SERVER=$DEFAULT_SERVER
-				switch_proxy $CURRENT_SERVER
-				echo "$(date "+%Y-%m-%d %H:%M:%S") switch to default "$(uci_get_by_name $CURRENT_SERVER alias)" proxy!" >>/tmp/ssrplus.log
-			else
-				echo "$(date "+%Y-%m-%d %H:%M:%S") Main server is NOT avilable.Continue using current server." >>/tmp/ssrplus.log
-			fi
-		fi
-		#判断当前代理是否正常
-		#echo "$(date "+%Y-%m-%d %H:%M:%S") Start checking if the current server is available." >>/tmp/ssrplus.log
-		check_proxy
-		current_ret=$?
-		if [ "$current_ret" == "1" ]; then
-			#当前代理错误，判断有无可用的服务器
-			#echo "current error"
-			echo "$(date "+%Y-%m-%d %H:%M:%S") Current server error, try to switch another server." >>/tmp/ssrplus.log
-			select_proxy
-			if [ "$ENABLE_SERVER" != nil ]; then
-				#有其他服务器可用，进行切换
-				#echo $(uci_get_by_name $new_proxy server)
-				echo "$(date "+%Y-%m-%d %H:%M:%S") Another server is avilable, now switching server." >>/tmp/ssrplus.log
-				CURRENT_SERVER=$ENABLE_SERVER
-				switch_proxy $CURRENT_SERVER
-				normal_flag=1
-				echo "$(date "+%Y-%m-%d %H:%M:%S") Switch to "$(uci_get_by_name $CURRENT_SERVER alias)" proxy!" >>/tmp/ssrplus.log
-			else
-				switch_proxy $CURRENT_SERVER
-				normal_flag=1
-				echo "$(date "+%Y-%m-%d %H:%M:%S") Try restart current server." >>/tmp/ssrplus.log
-			fi
-		else
-			normal_flag=0
-			# echo "$(date "+%Y-%m-%d %H:%M:%S") ShadowsocksR No Problem." >>/tmp/ssrplus.log
-		fi
-	done
+    #不支持kcptun启用时的切换
+    [ $(uci_get_by_name $DEFAULT_SERVER kcp_enable) = "1" ] && return 1
+    while [ "1" == "1" ]; do #死循环
+        sleep $cycle_time
+        #sleep 10
+        LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+        #判断当前代理是否为缺省服务器
+        if [ "$CURRENT_SERVER" != "$DEFAULT_SERVER" ]; then
+            #echo "not default proxy"
+            echo "$(date "+%Y-%m-%d %H:%M:%S") Current server is not default Main server, try to switch back." >>/tmp/ssrplus.log
+            #检查缺省服务器是否正常
+            if test_proxy $DEFAULT_SERVER; then
+                #echo "switch to default proxy"
+                echo "$(date "+%Y-%m-%d %H:%M:%S") Main server is avilable." >>/tmp/ssrplus.log
+                #缺省服务器正常，切换回来
+                CURRENT_SERVER=$DEFAULT_SERVER
+                switch_proxy $CURRENT_SERVER
+                echo "$(date "+%Y-%m-%d %H:%M:%S") switch to default "$(uci_get_by_name $CURRENT_SERVER alias)" proxy!" >>/tmp/ssrplus.log
+            else
+                echo "$(date "+%Y-%m-%d %H:%M:%S") Main server is NOT avilable.Continue using current server." >>/tmp/ssrplus.log
+            fi
+        fi
+        #判断当前代理是否正常
+        #echo "$(date "+%Y-%m-%d %H:%M:%S") Start checking if the current server is available." >>/tmp/ssrplus.log
+        check_proxy
+        current_ret=$?
+        if [ "$current_ret" == "1" ]; then
+            #当前代理错误，判断有无可用的服务器
+            #echo "current error"
+            echo "$(date "+%Y-%m-%d %H:%M:%S") Current server error, try to switch another server." >>/tmp/ssrplus.log
+            select_proxy
+            if [ "$ENABLE_SERVER" != nil ]; then
+                #有其他服务器可用，进行切换
+                #echo $(uci_get_by_name $new_proxy server)
+                echo "$(date "+%Y-%m-%d %H:%M:%S") Another server is avilable, now switching server." >>/tmp/ssrplus.log
+                CURRENT_SERVER=$ENABLE_SERVER
+                switch_proxy $CURRENT_SERVER
+                normal_flag=1
+                echo "$(date "+%Y-%m-%d %H:%M:%S") Switch to "$(uci_get_by_name $CURRENT_SERVER alias)" proxy!" >>/tmp/ssrplus.log
+            else
+                switch_proxy $CURRENT_SERVER
+                normal_flag=1
+                echo "$(date "+%Y-%m-%d %H:%M:%S") Try restart current server." >>/tmp/ssrplus.log
+            fi
+        else
+            normal_flag=0
+            # echo "$(date "+%Y-%m-%d %H:%M:%S") ShadowsocksR No Problem." >>/tmp/ssrplus.log
+        fi
+    done
 }
