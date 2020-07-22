@@ -4,11 +4,10 @@ payload:
   # 酷云
   - DOMAIN-SUFFIX,kuyunzy.com
   # ok云
-  - DOMAIN-SUFFIX,okzy.com
+  - DOMAIN-KEYWORD,okzy.com
   # 最大云
   - DOMAIN-SUFFIX,zuida.com
-  # 酷播云
-  - DOMAIN-SUFFIX,mahua-kb.com
+  
   # 极快云
   - DOMAIN-SUFFIX,jsyunbf.com
   # 麻花云
