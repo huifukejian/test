@@ -3,6 +3,8 @@ payload:
 
   # 酷云
   - DOMAIN-SUFFIX,kuyunzy.com
+  - DOMAIN-KEYWORD,kuyun.com,DIRECT
+
   # ok云
   - DOMAIN-KEYWORD,okzy.com
   # 最大云
