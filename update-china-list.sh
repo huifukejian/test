@@ -16,3 +16,5 @@ sed -i "s/^server=\/\(.*\)\/[^\/]*$/nameserver \/\1\/china/g;/^nameserver/!d" /t
 
 mv -f /tmp/smartdns/china.conf  /etc/smartdns/smartdns-domains.china.conf
 rm -rf /tmp/smartdns/
+
+/etc/init.d/smartdns reload
