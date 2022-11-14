@@ -14,7 +14,7 @@ cat /tmp/smartdns/google.conf >> /tmp/smartdns/china.conf 2>/dev/null
 #删除不符合规则的域名
 sed -i 's/^server=\/\(.*\)\/[^\/]*$/nameserver \/\1\/china/g;/^nameserver/!d' /tmp/smartdns/china.conf 2>/dev/null
 
-mv -f /tmp/smartdns/china.conf  /etc/smartdns/smartdns-domains.china.conf
+sudo mv -f /tmp/smartdns/china.conf  /etc/smartdns/smartdns-domains.china.conf
 rm -rf /tmp/smartdns/
 
-/etc/init.d/smartdns restart
+sudo /etc/init.d/smartdns restart
