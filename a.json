@@ -5,7 +5,7 @@
         "port": 8080,
         "settings": {
             "method": "chacha20",
-            "password": "myssrPWD",
+            "password": "password",
             "udp": true,
             "level": 0
         }
