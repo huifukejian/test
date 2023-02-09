@@ -21,7 +21,7 @@
             "protocol": "shadowsocks",
             "settings": {
                 "method": "aes-128-gcm",
-                "password": "360ssPWD"
+                "password": "password"
             },
             "streamSettings": {
                 "network": "tcp"
